@@ -15,7 +15,7 @@ const String kStateFileName = '.flutter_conductor_state.json';
 
 const String betaPostReleaseMsg = """
   'Ensure the following post release steps are complete:',
-  '\t 1. Post announcement to discord',
+  '\t 1. Post announcement to discord and press the publish button',
   '\t\t Discord: ${globals.discordReleaseChannel}',
   '\t 2. Post announcement flutter release hotline chat room',
   '\t\t Chatroom: ${globals.flutterReleaseHotline}',
@@ -28,7 +28,7 @@ const String stablePostReleaseMsg = """
   '\t\t Best practices: ${globals.hotfixDocumentationBestPractices}',
   '\t 2. Post announcement to flutter-announce group',
   '\t\t Flutter Announce: ${globals.flutterAnnounceGroup}',
-  '\t 3. Post announcement to discord',
+  '\t 3. Post announcement to discord and press the publish button',
   '\t\t Discord: ${globals.discordReleaseChannel}',
   '\t 4. Post announcement flutter release hotline chat room',
   '\t\t Chatroom: ${globals.flutterReleaseHotline}',
@@ -45,6 +45,9 @@ String luciConsoleLink(String channel, String groupName) {
   );
   final String consoleName =
       channel == 'master' ? groupName : '${channel}_$groupName';
+  if (groupName == 'packaging') {
+    return 'https://luci-milo.appspot.com/p/dart-internal/g/flutter_packaging/console';
+  }
   return 'https://ci.chromium.org/p/flutter/g/$consoleName/console';
 }
 
@@ -86,8 +89,7 @@ String presentState(pb.ConductorState state) {
   } else {
     buffer.writeln('0 Engine cherrypicks.');
   }
-  if (state.engine.dartRevision != null &&
-      state.engine.dartRevision.isNotEmpty) {
+  if (state.engine.dartRevision.isNotEmpty) {
     buffer.writeln('New Dart SDK revision: ${state.engine.dartRevision}');
   }
   buffer.writeln('Framework Repo');
@@ -149,6 +151,10 @@ String phaseInstructions(pb.ConductorState state) {
         return <String>[
           'There are no engine cherrypicks, so issue `conductor next` to continue',
           'to the next step.',
+          '\n',
+          '******************************************************',
+          '* Create a new entry in http://go/release-eng-retros *',
+          '******************************************************',
         ].join('\n');
       }
       return <String>[
@@ -267,7 +273,6 @@ String githubAccount(String remoteUrl) {
 /// Will throw a [ConductorException] if [ReleasePhase.RELEASE_COMPLETED] is
 /// passed as an argument, as there is no next phase.
 ReleasePhase getNextPhase(ReleasePhase currentPhase) {
-  assert(currentPhase != null);
   final ReleasePhase? nextPhase = ReleasePhase.valueOf(currentPhase.value + 1);
   if (nextPhase == null) {
     throw globals.ConductorException('There is no next ReleasePhase!');

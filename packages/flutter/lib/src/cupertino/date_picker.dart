@@ -81,8 +81,7 @@ class _DatePickerLayoutDelegate extends MultiChildLayoutDelegate {
   _DatePickerLayoutDelegate({
     required this.columnWidths,
     required this.textDirectionFactor,
-  }) : assert(columnWidths != null),
-       assert(textDirectionFactor != null);
+  });
 
   // The list containing widths of all columns.
   final List<double> columnWidths;
@@ -208,7 +207,7 @@ enum _PickerColumnType {
 ///
 /// {@tool dartpad}
 /// This sample shows how to implement CupertinoDatePicker with different picker modes.
-/// We can provide intiial dateTime value for the picker to display. When user changes
+/// We can provide initial dateTime value for the picker to display. When user changes
 /// the drag the date or time wheels, the picker will call onDateTimeChanged callback.
 ///
 /// CupertinoDatePicker can be displayed directly on a screen or in a popup.
@@ -277,14 +276,10 @@ class CupertinoDatePicker extends StatefulWidget {
     this.dateOrder,
     this.backgroundColor,
   }) : initialDateTime = initialDateTime ?? DateTime.now(),
-       assert(mode != null),
-       assert(onDateTimeChanged != null),
-       assert(minimumYear != null),
        assert(
          minuteInterval > 0 && 60 % minuteInterval == 0,
          'minute interval is not a positive integer factor of 60',
        ) {
-    assert(this.initialDateTime != null);
     assert(
       mode != CupertinoDatePickerMode.dateAndTime || minimumDate == null || !this.initialDateTime.isBefore(minimumDate!),
       'initial date is before minimum date',
@@ -470,20 +465,13 @@ class CupertinoDatePicker extends StatefulWidget {
 
     assert(longestText != '', 'column type is not appropriate');
 
-    final TextPainter painter = TextPainter(
+    return TextPainter.computeMaxIntrinsicWidth(
       text: TextSpan(
         style: _themeTextStyle(context),
         text: longestText,
       ),
       textDirection: Directionality.of(context),
     );
-
-    // This operation is expensive and should be avoided. It is called here only
-    // because there's no other way to get the information we want without
-    // laying out the text.
-    painter.layout();
-
-    return painter.maxIntrinsicWidth;
   }
 }
 
@@ -946,12 +934,11 @@ class _CupertinoDatePickerDateTimeState extends State<CupertinoDatePicker> {
     if (minCheck || maxCheck) {
       // We have minCheck === !maxCheck.
       final DateTime targetDate = minCheck ? widget.minimumDate! : widget.maximumDate!;
-      _scrollToDate(targetDate, selectedDate);
+      _scrollToDate(targetDate, selectedDate, minCheck);
     }
   }
 
-  void _scrollToDate(DateTime newDate, DateTime fromDate) {
-    assert(newDate != null);
+  void _scrollToDate(DateTime newDate, DateTime fromDate, bool minCheck) {
     SchedulerBinding.instance.addPostFrameCallback((Duration timestamp) {
       if (fromDate.year != newDate.year || fromDate.month != newDate.month || fromDate.day != newDate.day) {
         _animateColumnControllerToItem(dateController, selectedDayFromInitial);
@@ -977,7 +964,9 @@ class _CupertinoDatePickerDateTimeState extends State<CupertinoDatePicker> {
       }
 
       if (fromDate.minute != newDate.minute) {
-        _animateColumnControllerToItem(minuteController, newDate.minute);
+        final double positionDouble = newDate.minute / widget.minuteInterval;
+        final int position = minCheck ? positionDouble.ceil() : positionDouble.floor();
+        _animateColumnControllerToItem(minuteController, position);
       }
     });
   }
@@ -1354,7 +1343,6 @@ class _CupertinoDatePickerDateState extends State<CupertinoDatePicker> {
   }
 
   void _scrollToDate(DateTime newDate) {
-    assert(newDate != null);
     SchedulerBinding.instance.addPostFrameCallback((Duration timestamp) {
       if (selectedYear != newDate.year) {
         _animateColumnControllerToItem(yearController, newDate.year);
@@ -1556,15 +1544,12 @@ class CupertinoTimerPicker extends StatefulWidget {
     this.alignment = Alignment.center,
     this.backgroundColor,
     required this.onTimerDurationChanged,
-  }) : assert(mode != null),
-       assert(onTimerDurationChanged != null),
-       assert(initialTimerDuration >= Duration.zero),
+  }) : assert(initialTimerDuration >= Duration.zero),
        assert(initialTimerDuration < const Duration(days: 1)),
        assert(minuteInterval > 0 && 60 % minuteInterval == 0),
        assert(secondInterval > 0 && 60 % secondInterval == 0),
        assert(initialTimerDuration.inMinutes % minuteInterval == 0),
-       assert(initialTimerDuration.inSeconds % secondInterval == 0),
-       assert(alignment != null);
+       assert(initialTimerDuration.inSeconds % secondInterval == 0);
 
   /// The mode of the timer picker.
   final CupertinoTimerPickerMode mode;
@@ -1661,6 +1646,7 @@ class _CupertinoTimerPickerState extends State<CupertinoTimerPicker> {
   @override
   void dispose() {
     PaintingBinding.instance.systemFonts.removeListener(_handleSystemFontsChange);
+    textPainter.dispose();
     super.dispose();
   }
 

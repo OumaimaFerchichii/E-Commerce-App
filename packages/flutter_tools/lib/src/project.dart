@@ -56,7 +56,6 @@ class FlutterProjectFactory {
   /// Returns a [FlutterProject] view of the given directory or a ToolExit error,
   /// if `pubspec.yaml` or `example/pubspec.yaml` is invalid.
   FlutterProject fromDirectory(Directory directory) {
-    assert(directory != null);
     return projects.putIfAbsent(directory.path, () {
       final FlutterManifest manifest = FlutterProject._readManifest(
         directory.childFile(bundle.defaultManifestPath).path,
@@ -86,10 +85,7 @@ class FlutterProjectFactory {
 /// cached.
 class FlutterProject {
   @visibleForTesting
-  FlutterProject(this.directory, this.manifest, this._exampleManifest)
-    : assert(directory != null),
-      assert(manifest != null),
-      assert(_exampleManifest != null);
+  FlutterProject(this.directory, this.manifest, this._exampleManifest);
 
   /// Returns a [FlutterProject] view of the given directory or a ToolExit error,
   /// if `pubspec.yaml` or `example/pubspec.yaml` is invalid.
@@ -138,9 +134,16 @@ class FlutterProject {
       // Don't require iOS build info, this method is only
       // used during create as best-effort, use the
       // default target bundle identifier.
-      final String? bundleIdentifier = await ios.productBundleIdentifier(null);
-      if (bundleIdentifier != null) {
-        candidates.add(bundleIdentifier);
+      try {
+        final String? bundleIdentifier = await ios.productBundleIdentifier(null);
+        if (bundleIdentifier != null) {
+          candidates.add(bundleIdentifier);
+        }
+      } on ToolExit {
+        // It's possible that while parsing the build info for the ios project
+        // that the bundleIdentifier can't be resolve. However, we would like
+        // skip parsing that id in favor of searching in other place. We can
+        // consider a tool exit in this case to be non fatal for the program.
       }
     }
     if (android.existsSync()) {
@@ -169,7 +172,7 @@ class FlutterProject {
   }
 
   String? _organizationNameFromPackageName(String packageName) {
-    if (packageName != null && 0 <= packageName.lastIndexOf('.')) {
+    if (0 <= packageName.lastIndexOf('.')) {
       return packageName.substring(0, packageName.lastIndexOf('.'));
     }
     return null;
@@ -377,7 +380,7 @@ class FlutterProject {
   }
 
   void checkForDeprecation({DeprecationBehavior deprecationBehavior = DeprecationBehavior.none}) {
-    if (android.existsSync()) {
+    if (android.existsSync() && pubspecFile.existsSync()) {
       android.checkForDeprecation(deprecationBehavior: deprecationBehavior);
     }
   }
@@ -599,14 +602,11 @@ class AndroidProject extends FlutterProjectPlatform {
 Warning
 ──────────────────────────────────────────────────────────────────────────────
 Your Flutter application is created using an older version of the Android
-embedding. It is being deprecated in favor of Android embedding v2. Follow the
-steps at
+embedding. It is being deprecated in favor of Android embedding v2. To migrate
+your project, follow the steps at:
 
-https://flutter.dev/go/android-project-migration
+https://github.com/flutter/flutter/wiki/Upgrading-pre-1.12-Android-projects
 
-to migrate your project. You may also pass the --ignore-deprecation flag to
-ignore this check and continue with the deprecated v1 embedding. However,
-the v1 Android embedding will be removed in future versions of Flutter.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 The detected reason was:
 
@@ -641,7 +641,7 @@ The detected reason was:
       // the v1 embedding, we should check for this once removal is further along.
       return AndroidEmbeddingVersionResult(AndroidEmbeddingVersion.v2, 'Is plugin');
     }
-    if (appManifestFile == null || !appManifestFile.existsSync()) {
+    if (!appManifestFile.existsSync()) {
       return AndroidEmbeddingVersionResult(AndroidEmbeddingVersion.v1, 'No `${appManifestFile.absolute.path}` file');
     }
     XmlDocument document;

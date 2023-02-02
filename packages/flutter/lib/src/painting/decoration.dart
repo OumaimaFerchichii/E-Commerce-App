@@ -8,6 +8,9 @@ import 'basic_types.dart';
 import 'edge_insets.dart';
 import 'image_provider.dart';
 
+// Examples can assume:
+// late Decoration myDecoration;
+
 // This group of classes is intended for painting in cartesian coordinates.
 
 /// A description of a box decoration (a decoration applied to a [Rect]).
@@ -56,7 +59,7 @@ abstract class Decoration with Diagnosticable {
   /// [EdgeInsetsGeometry.resolve] to obtain an absolute [EdgeInsets]. (For
   /// example, [BorderDirectional] will return an [EdgeInsetsDirectional] for
   /// its [padding].)
-  EdgeInsetsGeometry? get padding => EdgeInsets.zero;
+  EdgeInsetsGeometry get padding => EdgeInsets.zero;
 
   /// Whether this decoration is complex enough to benefit from caching its painting.
   bool get isComplex => false;
@@ -126,7 +129,6 @@ abstract class Decoration with Diagnosticable {
   ///
   /// {@macro dart.ui.shadow.lerp}
   static Decoration? lerp(Decoration? a, Decoration? b, double t) {
-    assert(t != null);
     if (a == null && b == null) {
       return null;
     }

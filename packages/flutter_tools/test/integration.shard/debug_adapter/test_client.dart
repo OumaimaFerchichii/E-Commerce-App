@@ -83,6 +83,12 @@ class DapTestClient {
     return _eventController.stream.where((Event e) => e.event == event);
   }
 
+  /// Returns a stream of progress events.
+  Stream<Event> progressEvents() {
+    const Set<String> progressEvents = <String>{'progressStart', 'progressUpdate', 'progressEnd'};
+    return _eventController.stream.where((Event e) => progressEvents.contains(e.event));
+  }
+
   /// Returns a stream of custom 'dart.serviceExtensionAdded' events.
   Stream<Map<String, Object?>> get serviceExtensionAddedEvents =>
       events('dart.serviceExtensionAdded')
@@ -116,12 +122,14 @@ class DapTestClient {
   Future<Response> initialize({
     String exceptionPauseMode = 'None',
     bool? supportsRunInTerminalRequest,
+    bool? supportsProgressReporting,
   }) async {
     final List<ProtocolMessage> responses = await Future.wait(<Future<ProtocolMessage>>[
       event('initialized'),
       sendRequest(InitializeRequestArguments(
         adapterID: 'test',
         supportsRunInTerminalRequest: supportsRunInTerminalRequest,
+        supportsProgressReporting: supportsProgressReporting,
       )),
       sendRequest(
         SetExceptionBreakpointsArguments(
@@ -145,6 +153,7 @@ class DapTestClient {
     bool? debugExternalPackageLibraries,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
+    bool sendLogsToClient = false,
   }) {
     return sendRequest(
       FlutterLaunchRequestArguments(
@@ -159,9 +168,9 @@ class DapTestClient {
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
         evaluateToStringInDebugViews: evaluateToStringInDebugViews,
         // When running out of process, VM Service traffic won't be available
-        // to the client-side logger, so force logging on which sends VM Service
-        // traffic in a custom event.
-        sendLogsToClient: captureVmServiceTraffic,
+        // to the client-side logger, so force logging regardless of
+        // `sendLogsToClient` which sends VM Service traffic in a custom event.
+        sendLogsToClient: sendLogsToClient || captureVmServiceTraffic,
       ),
       // We can't automatically pick the command when using a custom type
       // (FlutterLaunchRequestArguments).
@@ -325,7 +334,7 @@ extension DapTestClientExtension on DapTestClient {
   Future<List<OutputEventBody>> collectAllOutput({
     String? program,
     String? cwd,
-    Future<Response> Function()? start,
+    Future<void> Function()? start,
     Future<Response> Function()? launch,
     bool skipInitialPubGetOutput = true
   }) async {

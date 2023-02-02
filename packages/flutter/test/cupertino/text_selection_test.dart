@@ -5,6 +5,7 @@
 // This file is run as part of a reduced test set in CI on Mac and Windows
 // machines.
 @Tags(<String>['reduced-test-set'])
+library;
 
 import 'dart:ui' as ui show BoxHeightStyle;
 
@@ -16,7 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../widgets/clipboard_utils.dart';
-import '../widgets/editable_text_utils.dart' show textOffsetToPosition, findRenderEditable;
+import '../widgets/editable_text_utils.dart' show findRenderEditable, textOffsetToPosition;
 
 class _LongCupertinoLocalizationsDelegate extends LocalizationsDelegate<CupertinoLocalizations> {
   const _LongCupertinoLocalizationsDelegate();

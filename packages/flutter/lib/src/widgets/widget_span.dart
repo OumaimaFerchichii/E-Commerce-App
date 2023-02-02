@@ -8,6 +8,9 @@ import 'package:flutter/painting.dart';
 
 import 'framework.dart';
 
+// Examples can assume:
+// late WidgetSpan myWidgetSpan;
+
 /// An immutable widget that is embedded inline within text.
 ///
 /// The [child] property is the widget that will be embedded. Children are
@@ -74,8 +77,7 @@ class WidgetSpan extends PlaceholderSpan {
     super.alignment,
     super.baseline,
     super.style,
-  }) : assert(child != null),
-       assert(
+  }) : assert(
          baseline != null || !(
           identical(alignment, ui.PlaceholderAlignment.aboveBaseline) ||
           identical(alignment, ui.PlaceholderAlignment.belowBaseline) ||

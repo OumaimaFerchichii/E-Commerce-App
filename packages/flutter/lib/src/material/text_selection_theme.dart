@@ -7,6 +7,9 @@ import 'package:flutter/widgets.dart';
 
 import 'theme.dart';
 
+// Examples can assume:
+// late BuildContext context;
+
 /// Defines the visual properties needed for text selection in [TextField] and
 /// [SelectableText] widgets.
 ///
@@ -73,7 +76,6 @@ class TextSelectionThemeData with Diagnosticable {
     if (a == null && b == null) {
       return null;
     }
-    assert(t != null);
     return TextSelectionThemeData(
       cursorColor: Color.lerp(a?.cursorColor, b?.cursorColor, t),
       selectionColor: Color.lerp(a?.selectionColor, b?.selectionColor, t),
@@ -144,8 +146,7 @@ class TextSelectionTheme extends InheritedTheme {
     super.key,
     required this.data,
     required Widget child,
-  }) : assert(data != null),
-       _child = child,
+  }) : _child = child,
        // See `get child` override below.
        super(child: const _NullWidget());
 

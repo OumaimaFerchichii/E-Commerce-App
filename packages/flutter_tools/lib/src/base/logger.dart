@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 import '../convert.dart';
 import 'common.dart';
 import 'io.dart';
-import 'terminal.dart' show Terminal, TerminalColor, OutputPreferences;
+import 'terminal.dart' show OutputPreferences, Terminal, TerminalColor;
 import 'utils.dart';
 
 const int kDefaultStatusPadding = 59;
@@ -722,6 +722,7 @@ class WindowsStdoutLogger extends StdoutLogger {
                .replaceAll('✓', '√')
                .replaceAll('🔨', '')
                .replaceAll('💪', '')
+               .replaceAll('⚠️', '!')
                .replaceAll('✏️', '');
     _stdio.stdoutWrite(windowsMessage);
   }
@@ -789,8 +790,14 @@ class BufferLogger extends Logger {
     bool? wrap,
   }) {
     hadErrorOutput = true;
+    final StringBuffer errorMessage = StringBuffer();
+    errorMessage.write(message);
+    if (stackTrace != null) {
+      errorMessage.writeln();
+      errorMessage.write(stackTrace);
+    }
     _error.writeln(terminal.color(
-      wrapText(message,
+      wrapText(errorMessage.toString(),
         indent: indent,
         hangingIndent: hangingIndent,
         shouldWrap: wrap ?? _outputPreferences.wrapText,
@@ -870,7 +877,6 @@ class BufferLogger extends Logger {
     String? progressId,
     int progressIndicatorPadding = kDefaultStatusPadding,
   }) {
-    assert(progressIndicatorPadding != null);
     printStatus(message);
     return SilentStatus(
       stopwatch: _stopwatchFactory.createStopwatch(),
@@ -1013,7 +1019,6 @@ class VerboseLogger extends DelegatingLogger {
     String? progressId,
     int progressIndicatorPadding = kDefaultStatusPadding,
   }) {
-    assert(progressIndicatorPadding != null);
     printStatus(message);
     final Stopwatch timer = _stopwatchFactory.createStopwatch()..start();
     return SilentStatus(
@@ -1198,7 +1203,7 @@ class SilentStatus extends Status {
 
 const int _kTimePadding = 8; // should fit "99,999ms"
 
-/// Constructor writes [message] to [stdout].  On [cancel] or [stop], will call
+/// Constructor writes [message] to [stdout]. On [cancel] or [stop], will call
 /// [onFinish]. On [stop], will additionally print out summary information.
 class SummaryStatus extends Status {
   SummaryStatus({
@@ -1349,7 +1354,6 @@ class AnonymousSpinnerStatus extends Status {
 
   void _callback(Timer timer) {
     assert(this.timer == timer);
-    assert(timer != null);
     assert(timer.isActive);
     _writeToStdOut(_backspaceChar * _lastAnimationFrameLength);
     ticks += 1;

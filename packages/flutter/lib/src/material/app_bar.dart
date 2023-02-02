@@ -11,11 +11,14 @@ import 'package:flutter/widgets.dart';
 
 import 'app_bar_theme.dart';
 import 'back_button.dart';
+import 'button_style.dart';
 import 'color_scheme.dart';
+import 'colors.dart';
 import 'constants.dart';
 import 'debug.dart';
 import 'flexible_space_bar.dart';
 import 'icon_button.dart';
+import 'icon_button_theme.dart';
 import 'icons.dart';
 import 'material.dart';
 import 'material_localizations.dart';
@@ -24,6 +27,10 @@ import 'scaffold.dart';
 import 'tabs.dart';
 import 'text_theme.dart';
 import 'theme.dart';
+
+// Examples can assume:
+// late String _logoAsset;
+// double _myToolbarHeight = 250.0;
 
 const double _kLeadingWidth = kToolbarHeight; // So the leading button is square.
 const double _kMaxTitleTextScaleFactor = 1.34; // TODO(perc): Add link to Material spec when available, https://github.com/flutter/flutter/issues/58769.
@@ -122,7 +129,7 @@ class _PreferredAppBarSize extends Size {
 ///
 /// If the app bar's [actions] contains [TextButton]s, they will not
 /// be visible if their foreground (text) color is the same as the
-/// the app bar's background color.
+/// app bar's background color.
 ///
 /// The default app bar [backgroundColor] is the overall theme's
 /// [ColorScheme.primary] if the overall theme's brightness is
@@ -138,6 +145,14 @@ class _PreferredAppBarSize extends Size {
 /// color set to [ColorScheme.onPrimary].
 ///
 /// ** See code in examples/api/lib/material/app_bar/app_bar.2.dart **
+/// {@end-tool}
+///
+/// {@tool dartpad}
+/// This example shows how to listen to a nested Scrollable's scroll notification
+/// in a nested scroll view using the [notificationPredicate] property and use it
+/// to make [scrolledUnderElevation] take effect.
+///
+/// ** See code in examples/api/lib/material/app_bar/app_bar.3.dart **
 /// {@end-tool}
 ///
 /// See also:
@@ -186,11 +201,6 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
     this.brightness,
     this.iconTheme,
     this.actionsIconTheme,
-    @Deprecated(
-      'This property is no longer used, please use toolbarTextStyle and titleTextStyle instead. '
-      'This feature was deprecated after v2.4.0-0.0.pre.',
-    )
-    this.textTheme,
     this.primary = true,
     this.centerTitle,
     this.excludeHeaderSemantics = false,
@@ -207,12 +217,8 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
     this.toolbarTextStyle,
     this.titleTextStyle,
     this.systemOverlayStyle,
-  }) : assert(automaticallyImplyLeading != null),
-       assert(elevation == null || elevation >= 0.0),
-       assert(notificationPredicate != null),
-       assert(primary != null),
-       assert(toolbarOpacity != null),
-       assert(bottomOpacity != null),
+    this.forceMaterialTransparency = false,
+  }) : assert(elevation == null || elevation >= 0.0),
        preferredSize = _PreferredAppBarSize(toolbarHeight, bottom?.preferredSize.height);
 
   /// Used by [Scaffold] to compute its [AppBar]'s overall height. The returned value is
@@ -311,10 +317,10 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   ///   home: Scaffold(
   ///     appBar: AppBar(
   ///       title: SizedBox(
-  ///         height: toolbarHeight,
-  ///         child: Image.asset(logoAsset),
+  ///         height: _myToolbarHeight,
+  ///         child: Image.asset(_logoAsset),
   ///       ),
-  ///       toolbarHeight: toolbarHeight,
+  ///       toolbarHeight: _myToolbarHeight,
   ///     ),
   ///   ),
   /// )
@@ -331,6 +337,9 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   /// The [actions] become the trailing component of the [NavigationToolbar] built
   /// by this widget. The height of each action is constrained to be no bigger
   /// than the [toolbarHeight].
+  ///
+  /// To avoid having the last action covered by the debug banner, you may want
+  /// to set the [MaterialApp.debugShowCheckedModeBanner] to false.
   /// {@endtemplate}
   ///
   /// {@tool snippet}
@@ -470,7 +479,7 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   /// The shape of the app bar's [Material] as well as its shadow.
   ///
   /// If this property is null, then [AppBarTheme.shape] of
-  /// [ThemeData.appBarTheme] is used.  Both properties default to null.
+  /// [ThemeData.appBarTheme] is used. Both properties default to null.
   /// If both properties are null then the shape of the app bar's [Material]
   /// is just a simple rectangle.
   ///
@@ -546,7 +555,7 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   ///
   /// The AppBar is built within a `AnnotatedRegion<SystemUiOverlayStyle>`
   /// which causes [SystemChrome.setSystemUIOverlayStyle] to be called
-  /// automatically.  Apps should not enclose the AppBar with
+  /// automatically. Apps should not enclose the AppBar with
   /// their own [AnnotatedRegion].
   /// {@endtemplate}
   ///
@@ -577,7 +586,7 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   /// See also:
   ///
   ///  * [actionsIconTheme], which defines the appearance of icons in
-  ///    in the [actions] list.
+  ///    the [actions] list.
   final IconThemeData? iconTheme;
 
   /// {@template flutter.material.appbar.actionsIconTheme}
@@ -597,23 +606,6 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   ///
   ///  * [iconTheme], which defines the appearance of all of the toolbar icons.
   final IconThemeData? actionsIconTheme;
-
-  /// {@template flutter.material.appbar.textTheme}
-  /// This property is deprecated, please use [toolbarTextStyle] and
-  /// [titleTextStyle] instead.
-  ///
-  /// The typographic styles to use for text in the app bar. Typically this is
-  /// set along with [backgroundColor], [iconTheme].
-  ///
-  /// If this property is null, then [AppBarTheme.textTheme] of
-  /// [ThemeData.appBarTheme] is used. If that is also null, then
-  /// [ThemeData.primaryTextTheme] is used.
-  /// {@endtemplate}
-  @Deprecated(
-    'This property is no longer used, please use toolbarTextStyle and titleTextStyle instead. '
-    'This feature was deprecated after v2.4.0-0.0.pre.',
-  )
-  final TextTheme? textTheme;
 
   /// {@template flutter.material.appbar.primary}
   /// Whether this app bar is being displayed at the top of the screen.
@@ -685,14 +677,14 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   /// {@template flutter.material.appbar.toolbarHeight}
   /// Defines the height of the toolbar component of an [AppBar].
   ///
-  /// By default, the value of `toolbarHeight` is [kToolbarHeight].
+  /// By default, the value of [toolbarHeight] is [kToolbarHeight].
   /// {@endtemplate}
   final double? toolbarHeight;
 
   /// {@template flutter.material.appbar.leadingWidth}
   /// Defines the width of [leading] widget.
   ///
-  /// By default, the value of `leadingWidth` is 56.0.
+  /// By default, the value of [leadingWidth] is 56.0.
   /// {@endtemplate}
   final double? leadingWidth;
 
@@ -701,7 +693,7 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   ///
   /// If true, preserves the original defaults for the [backgroundColor],
   /// [iconTheme], [actionsIconTheme] properties, and the original use of
-  /// the [textTheme] and [brightness] properties.
+  /// the [brightness] property.
   ///
   /// If this property is null, then [AppBarTheme.backwardsCompatibility] of
   /// [ThemeData.appBarTheme] is used. If that is also null, the default
@@ -724,7 +716,7 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   ///
   /// If this property is null, then [AppBarTheme.toolbarTextStyle] of
   /// [ThemeData.appBarTheme] is used. If that is also null, the default
-  /// value is a copy of the overall theme's [TextTheme.bodyText2]
+  /// value is a copy of the overall theme's [TextTheme.bodyMedium]
   /// [TextStyle], with color set to the app bar's [foregroundColor].
   /// {@endtemplate}
   ///
@@ -732,7 +724,7 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   ///
   ///  * [titleTextStyle], which overrides the default text style for the [title].
   ///  * [DefaultTextStyle], which overrides the default text style for all of the
-  ///    the widgets in a subtree.
+  ///    widgets in a subtree.
   final TextStyle? toolbarTextStyle;
 
   /// {@template flutter.material.appbar.titleTextStyle}
@@ -740,7 +732,7 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   ///
   /// If this property is null, then [AppBarTheme.titleTextStyle] of
   /// [ThemeData.appBarTheme] is used. If that is also null, the default
-  /// value is a copy of the overall theme's [TextTheme.headline6]
+  /// value is a copy of the overall theme's [TextTheme.titleLarge]
   /// [TextStyle], with color set to the app bar's [foregroundColor].
   /// {@endtemplate}
   ///
@@ -750,7 +742,7 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   ///    [title], [leading], and [actions] widgets, also known as the
   ///    AppBar's "toolbar".
   ///  * [DefaultTextStyle], which overrides the default text style for all of the
-  ///    the widgets in a subtree.
+  ///    widgets in a subtree.
   final TextStyle? titleTextStyle;
 
   /// {@template flutter.material.appbar.systemOverlayStyle}
@@ -765,7 +757,7 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   /// The AppBar's descendants are built within a
   /// `AnnotatedRegion<SystemUiOverlayStyle>` widget, which causes
   /// [SystemChrome.setSystemUIOverlayStyle] to be called
-  /// automatically.  Apps should not enclose an AppBar with their
+  /// automatically. Apps should not enclose an AppBar with their
   /// own [AnnotatedRegion].
   /// {@endtemplate}
   //
@@ -773,9 +765,23 @@ class AppBar extends StatefulWidget implements PreferredSizeWidget {
   ///  * [SystemChrome.setSystemUIOverlayStyle]
   final SystemUiOverlayStyle? systemOverlayStyle;
 
+  /// {@template flutter.material.appbar.forceMaterialTransparency}
+  /// Forces the AppBar's Material widget type to be [MaterialType.transparency]
+  /// (instead of Material's default type).
+  ///
+  /// This will remove the visual display of [backgroundColor] and [elevation],
+  /// and affect other characteristics of the AppBar's Material widget.
+  ///
+  /// Provided for cases where the app bar is to be transparent, and gestures
+  /// must pass through the app bar to widgets beneath the app bar (i.e. with
+  /// [Scaffold.extendBodyBehindAppBar] set to true).
+  ///
+  /// Defaults to false.
+  /// {@endtemplate}
+  final bool forceMaterialTransparency;
+
   bool _getEffectiveCenterTitle(ThemeData theme) {
     bool platformCenter() {
-      assert(theme.platform != null);
       switch (theme.platform) {
         case TargetPlatform.android:
         case TargetPlatform.fuchsia:
@@ -804,13 +810,9 @@ class _AppBarState extends State<AppBar> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_scrollNotificationObserver != null) {
-      _scrollNotificationObserver!.removeListener(_handleScrollNotification);
-    }
-    _scrollNotificationObserver = ScrollNotificationObserver.of(context);
-    if (_scrollNotificationObserver != null) {
-      _scrollNotificationObserver!.addListener(_handleScrollNotification);
-    }
+    _scrollNotificationObserver?.removeListener(_handleScrollNotification);
+    _scrollNotificationObserver = ScrollNotificationObserver.maybeOf(context);
+    _scrollNotificationObserver?.addListener(_handleScrollNotification);
   }
 
   @override
@@ -867,7 +869,13 @@ class _AppBarState extends State<AppBar> {
     final SystemUiOverlayStyle style = brightness == Brightness.dark
       ? SystemUiOverlayStyle.light
       : SystemUiOverlayStyle.dark;
-    return style.copyWith(statusBarColor: backgroundColor);
+    // For backward compatibility, create an overlay style without system navigation bar settings.
+    return SystemUiOverlayStyle(
+      statusBarColor: backgroundColor,
+      statusBarBrightness: style.statusBarBrightness,
+      statusBarIconBrightness: style.statusBarIconBrightness,
+      systemStatusBarContrastEnforced: style.systemStatusBarContrastEnforced,
+    );
   }
 
   @override
@@ -875,6 +883,7 @@ class _AppBarState extends State<AppBar> {
     assert(!widget.primary || debugCheckHasMediaQuery(context));
     assert(debugCheckHasMaterialLocalizations(context));
     final ThemeData theme = Theme.of(context);
+    final IconButtonThemeData iconButtonTheme = IconButtonTheme.of(context);
     final AppBarTheme appBarTheme = AppBarTheme.of(context);
     final AppBarTheme defaults = theme.useMaterial3 ? _AppBarDefaultsM3(context) : _AppBarDefaultsM2(context);
     final ScaffoldState? scaffold = Scaffold.maybeOf(context);
@@ -927,25 +936,27 @@ class _AppBarState extends State<AppBar> {
         ?? appBarTheme.iconTheme
         ?? defaults.iconTheme!.copyWith(color: foregroundColor);
 
+    final Color? actionForegroundColor = widget.foregroundColor
+      ?? appBarTheme.foregroundColor;
     IconThemeData actionsIconTheme = widget.actionsIconTheme
       ?? appBarTheme.actionsIconTheme
       ?? widget.iconTheme
       ?? appBarTheme.iconTheme
-      ?? defaults.actionsIconTheme?.copyWith(color: foregroundColor)
+      ?? defaults.actionsIconTheme?.copyWith(color: actionForegroundColor)
       ?? overallIconTheme;
 
     TextStyle? toolbarTextStyle = backwardsCompatibility
-      ? widget.textTheme?.bodyText2
-        ?? appBarTheme.textTheme?.bodyText2
-        ?? theme.primaryTextTheme.bodyText2
+      ? widget.toolbarTextStyle
+        ?? appBarTheme.toolbarTextStyle
+        ?? theme.primaryTextTheme.bodyMedium
       : widget.toolbarTextStyle
         ?? appBarTheme.toolbarTextStyle
         ?? defaults.toolbarTextStyle?.copyWith(color: foregroundColor);
 
     TextStyle? titleTextStyle = backwardsCompatibility
-      ? widget.textTheme?.headline6
-        ?? appBarTheme.textTheme?.headline6
-        ?? theme.primaryTextTheme.headline6
+      ? widget.titleTextStyle
+        ?? appBarTheme.titleTextStyle
+        ?? theme.primaryTextTheme.titleLarge
       : widget.titleTextStyle
         ?? appBarTheme.titleTextStyle
         ?? defaults.titleTextStyle?.copyWith(color: foregroundColor);
@@ -983,10 +994,49 @@ class _AppBarState extends State<AppBar> {
       }
     }
     if (leading != null) {
-      leading = ConstrainedBox(
-        constraints: BoxConstraints.tightFor(width: widget.leadingWidth ?? _kLeadingWidth),
-        child: leading,
-      );
+      if (theme.useMaterial3) {
+        final IconButtonThemeData effectiveIconButtonTheme;
+
+        // This comparison is to check if there is a custom [overallIconTheme]. If true, it means that no
+        // custom [overallIconTheme] is provided, so [iconButtonTheme] is applied. Otherwise, we generate
+        // a new [IconButtonThemeData] based on the values from [overallIconTheme]. If [iconButtonTheme] only
+        // has null values, the default [overallIconTheme] will be applied below by [IconTheme.merge]
+        if (overallIconTheme == defaults.iconTheme) {
+          effectiveIconButtonTheme = iconButtonTheme;
+        } else {
+          // The [IconButton.styleFrom] method is used to generate a correct [overlayColor] based on the [foregroundColor].
+          final ButtonStyle leadingIconButtonStyle = IconButton.styleFrom(
+            foregroundColor: overallIconTheme.color,
+            iconSize: overallIconTheme.size,
+          );
+
+          effectiveIconButtonTheme = IconButtonThemeData(
+            style: iconButtonTheme.style?.copyWith(
+              foregroundColor: leadingIconButtonStyle.foregroundColor,
+              overlayColor: leadingIconButtonStyle.overlayColor,
+              iconSize: leadingIconButtonStyle.iconSize,
+            )
+          );
+        }
+
+        leading = IconButtonTheme(
+            data: effectiveIconButtonTheme,
+            child: leading is IconButton ? Center(child: leading) : leading,
+        );
+
+        // Based on the Material Design 3 specs, the leading IconButton should have
+        // a size of 48x48, and a highlight size of 40x40. Users can also put other
+        // type of widgets on leading with the original config.
+        leading = ConstrainedBox(
+          constraints: BoxConstraints.tightFor(width: widget.leadingWidth ?? _kLeadingWidth),
+          child: leading,
+        );
+      } else {
+        leading = ConstrainedBox(
+          constraints: BoxConstraints.tightFor(width: widget.leadingWidth ?? _kLeadingWidth),
+          child: leading,
+        );
+      }
     }
 
     Widget? title = widget.title;
@@ -1041,7 +1091,7 @@ class _AppBarState extends State<AppBar> {
     if (widget.actions != null && widget.actions!.isNotEmpty) {
       actions = Row(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: theme.useMaterial3 ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
         children: widget.actions!,
       );
     } else if (hasEndDrawer) {
@@ -1055,9 +1105,30 @@ class _AppBarState extends State<AppBar> {
 
     // Allow the trailing actions to have their own theme if necessary.
     if (actions != null) {
-      actions = IconTheme.merge(
-        data: actionsIconTheme,
-        child: actions,
+      final IconButtonThemeData effectiveActionsIconButtonTheme;
+      if (actionsIconTheme == defaults.actionsIconTheme) {
+        effectiveActionsIconButtonTheme = iconButtonTheme;
+      } else {
+        final ButtonStyle actionsIconButtonStyle = IconButton.styleFrom(
+          foregroundColor: actionsIconTheme.color,
+          iconSize: actionsIconTheme.size,
+        );
+
+        effectiveActionsIconButtonTheme = IconButtonThemeData(
+          style: iconButtonTheme.style?.copyWith(
+            foregroundColor: actionsIconButtonStyle.foregroundColor,
+            overlayColor: actionsIconButtonStyle.overlayColor,
+            iconSize: actionsIconButtonStyle.iconSize,
+          )
+        );
+      }
+
+      actions = IconButtonTheme(
+        data: effectiveActionsIconButtonTheme,
+        child: IconTheme.merge(
+          data: actionsIconTheme,
+          child: actions,
+        ),
       );
     }
 
@@ -1163,6 +1234,9 @@ class _AppBarState extends State<AppBar> {
         child: Material(
           color: backgroundColor,
           elevation: effectiveElevation,
+          type: widget.forceMaterialTransparency
+              ? MaterialType.transparency
+              : MaterialType.canvas,
           shadowColor: widget.shadowColor
             ?? appBarTheme.shadowColor
             ?? defaults.shadowColor,
@@ -1198,7 +1272,6 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     required this.brightness,
     required this.iconTheme,
     required this.actionsIconTheme,
-    required this.textTheme,
     required this.primary,
     required this.centerTitle,
     required this.excludeHeaderSemantics,
@@ -1219,11 +1292,8 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     required this.toolbarTextStyle,
     required this.titleTextStyle,
     required this.systemOverlayStyle,
+    required this.forceMaterialTransparency,
   }) : assert(primary || topPadding == 0.0),
-       assert(
-         !floating || (snapConfiguration == null && showOnScreenConfiguration == null) || vsync != null,
-         'vsync cannot be null when snapConfiguration or showOnScreenConfiguration is not null, and floating is true',
-       ),
        _bottomHeight = bottom?.preferredSize.height ?? 0.0;
 
   final Widget? leading;
@@ -1242,7 +1312,6 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   final Brightness? brightness;
   final IconThemeData? iconTheme;
   final IconThemeData? actionsIconTheme;
-  final TextTheme? textTheme;
   final bool primary;
   final bool? centerTitle;
   final bool excludeHeaderSemantics;
@@ -1260,6 +1329,7 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   final TextStyle? titleTextStyle;
   final SystemUiOverlayStyle? systemOverlayStyle;
   final double _bottomHeight;
+  final bool forceMaterialTransparency;
 
   @override
   double get minExtent => collapsedHeight;
@@ -1318,7 +1388,6 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
         brightness: brightness,
         iconTheme: iconTheme,
         actionsIconTheme: actionsIconTheme,
-        textTheme: textTheme,
         primary: primary,
         centerTitle: centerTitle,
         excludeHeaderSemantics: excludeHeaderSemantics,
@@ -1332,6 +1401,7 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
         toolbarTextStyle: toolbarTextStyle,
         titleTextStyle: titleTextStyle,
         systemOverlayStyle: systemOverlayStyle,
+        forceMaterialTransparency: forceMaterialTransparency,
       ),
     );
     return appBar;
@@ -1353,7 +1423,6 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
         || brightness != oldDelegate.brightness
         || iconTheme != oldDelegate.iconTheme
         || actionsIconTheme != oldDelegate.actionsIconTheme
-        || textTheme != oldDelegate.textTheme
         || primary != oldDelegate.primary
         || centerTitle != oldDelegate.centerTitle
         || titleSpacing != oldDelegate.titleSpacing
@@ -1371,7 +1440,8 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
         || backwardsCompatibility != oldDelegate.backwardsCompatibility
         || toolbarTextStyle != oldDelegate.toolbarTextStyle
         || titleTextStyle != oldDelegate.titleTextStyle
-        || systemOverlayStyle != oldDelegate.systemOverlayStyle;
+        || systemOverlayStyle != oldDelegate.systemOverlayStyle
+        || forceMaterialTransparency != oldDelegate.forceMaterialTransparency;
   }
 
   @override
@@ -1492,11 +1562,6 @@ class SliverAppBar extends StatefulWidget {
     this.brightness,
     this.iconTheme,
     this.actionsIconTheme,
-    @Deprecated(
-      'This property is no longer used, please use toolbarTextStyle and titleTextStyle instead. '
-      'This feature was deprecated after v2.4.0-0.0.pre.',
-    )
-    this.textTheme,
     this.primary = true,
     this.centerTitle,
     this.excludeHeaderSemantics = false,
@@ -1520,15 +1585,8 @@ class SliverAppBar extends StatefulWidget {
     this.toolbarTextStyle,
     this.titleTextStyle,
     this.systemOverlayStyle,
-  }) : assert(automaticallyImplyLeading != null),
-       assert(forceElevated != null),
-       assert(primary != null),
-       assert(floating != null),
-       assert(pinned != null),
-       assert(snap != null),
-       assert(stretch != null),
-       assert(toolbarHeight != null),
-       assert(floating || !snap, 'The "snap" argument only makes sense for floating app bars.'),
+    this.forceMaterialTransparency = false,
+  }) : assert(floating || !snap, 'The "snap" argument only makes sense for floating app bars.'),
        assert(stretchTriggerOffset > 0.0),
        assert(collapsedHeight == null || collapsedHeight >= toolbarHeight, 'The "collapsedHeight" argument has to be larger than or equal to [toolbarHeight].');
 
@@ -1598,6 +1656,7 @@ class SliverAppBar extends StatefulWidget {
       actions: actions,
       flexibleSpace: flexibleSpace ?? _ScrollUnderFlexibleSpace(
         title: title,
+        foregroundColor: foregroundColor,
         variant: _ScrollUnderFlexibleVariant.medium,
         centerCollapsedTitle: centerTitle,
         primary: primary,
@@ -1699,6 +1758,7 @@ class SliverAppBar extends StatefulWidget {
       actions: actions,
       flexibleSpace: flexibleSpace ?? _ScrollUnderFlexibleSpace(
         title: title,
+        foregroundColor: foregroundColor,
         variant: _ScrollUnderFlexibleVariant.large,
         centerCollapsedTitle: centerTitle,
         primary: primary,
@@ -1823,15 +1883,6 @@ class SliverAppBar extends StatefulWidget {
   ///
   /// This property is used to configure an [AppBar].
   final IconThemeData? actionsIconTheme;
-
-  /// {@macro flutter.material.appbar.textTheme}
-  ///
-  /// This property is used to configure an [AppBar].
-  @Deprecated(
-    'This property is no longer used, please use toolbarTextStyle and titleTextStyle instead. '
-    'This feature was deprecated after v2.4.0-0.0.pre.',
-  )
-  final TextTheme? textTheme;
 
   /// {@macro flutter.material.appbar.primary}
   ///
@@ -2008,6 +2059,11 @@ class SliverAppBar extends StatefulWidget {
   /// This property is used to configure an [AppBar].
   final SystemUiOverlayStyle? systemOverlayStyle;
 
+  /// {@macro flutter.material.appbar.forceMaterialTransparency}
+  ///
+  /// This property is used to configure an [AppBar].
+  final bool forceMaterialTransparency;
+
   @override
   State<SliverAppBar> createState() => _SliverAppBarState();
 }
@@ -2067,7 +2123,7 @@ class _SliverAppBarState extends State<SliverAppBar> with TickerProviderStateMix
   Widget build(BuildContext context) {
     assert(!widget.primary || debugCheckHasMediaQuery(context));
     final double bottomHeight = widget.bottom?.preferredSize.height ?? 0.0;
-    final double topPadding = widget.primary ? MediaQuery.of(context).padding.top : 0.0;
+    final double topPadding = widget.primary ? MediaQuery.paddingOf(context).top : 0.0;
     final double collapsedHeight = (widget.pinned && widget.floating && widget.bottom != null)
       ? (widget.collapsedHeight ?? 0.0) + bottomHeight + topPadding
       : (widget.collapsedHeight ?? widget.toolbarHeight) + bottomHeight + topPadding;
@@ -2096,7 +2152,6 @@ class _SliverAppBarState extends State<SliverAppBar> with TickerProviderStateMix
           brightness: widget.brightness,
           iconTheme: widget.iconTheme,
           actionsIconTheme: widget.actionsIconTheme,
-          textTheme: widget.textTheme,
           primary: widget.primary,
           centerTitle: widget.centerTitle,
           excludeHeaderSemantics: widget.excludeHeaderSemantics,
@@ -2116,6 +2171,7 @@ class _SliverAppBarState extends State<SliverAppBar> with TickerProviderStateMix
           toolbarTextStyle: widget.toolbarTextStyle,
           titleTextStyle: widget.titleTextStyle,
           systemOverlayStyle: widget.systemOverlayStyle,
+          forceMaterialTransparency: widget.forceMaterialTransparency,
         ),
       ),
     );
@@ -2126,7 +2182,7 @@ class _SliverAppBarState extends State<SliverAppBar> with TickerProviderStateMix
 // center it within its (NavigationToolbar) parent, and allow the
 // parent to constrain the title's actual height.
 class _AppBarTitleBox extends SingleChildRenderObjectWidget {
-  const _AppBarTitleBox({ required Widget super.child }) : assert(child != null);
+  const _AppBarTitleBox({ required Widget super.child });
 
   @override
   _RenderAppBarTitleBox createRenderObject(BuildContext context) {
@@ -2164,33 +2220,31 @@ class _RenderAppBarTitleBox extends RenderAligningShiftedBox {
 
 enum _ScrollUnderFlexibleVariant { medium, large }
 
-class _ScrollUnderFlexibleSpace extends StatefulWidget {
+class _ScrollUnderFlexibleSpace extends StatelessWidget {
   const _ScrollUnderFlexibleSpace({
     this.title,
+    this.foregroundColor,
     required this.variant,
     this.centerCollapsedTitle,
     this.primary = true,
   });
 
   final Widget? title;
+  final Color? foregroundColor;
   final _ScrollUnderFlexibleVariant variant;
   final bool? centerCollapsedTitle;
   final bool primary;
 
   @override
-  State<_ScrollUnderFlexibleSpace> createState() => _ScrollUnderFlexibleSpaceState();
-}
-
-class _ScrollUnderFlexibleSpaceState extends State<_ScrollUnderFlexibleSpace> {
-  @override
   Widget build(BuildContext context) {
     late final ThemeData theme = Theme.of(context);
+    late final AppBarTheme appBarTheme = AppBarTheme.of(context);
     final FlexibleSpaceBarSettings settings = context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>()!;
-    final double topPadding = widget.primary ? MediaQuery.of(context).viewPadding.top : 0;
+    final double topPadding = primary ? MediaQuery.viewPaddingOf(context).top : 0;
     final double collapsedHeight = settings.minExtent - topPadding;
     final double scrollUnderHeight = settings.maxExtent - settings.minExtent;
     final _ScrollUnderFlexibleConfig config;
-    switch (widget.variant) {
+    switch (variant) {
       case _ScrollUnderFlexibleVariant.medium:
         config = _MediumScrollUnderFlexibleConfig(context);
         break;
@@ -2201,25 +2255,24 @@ class _ScrollUnderFlexibleSpaceState extends State<_ScrollUnderFlexibleSpace> {
 
     late final Widget? collapsedTitle;
     late final Widget? expandedTitle;
-    if (widget.title != null) {
+    if (title != null) {
       collapsedTitle = config.collapsedTextStyle != null
         ? DefaultTextStyle(
-            style: config.collapsedTextStyle!,
-            child: widget.title!,
+            style: config.collapsedTextStyle!.copyWith(color: foregroundColor ?? appBarTheme.foregroundColor),
+            child: title!,
           )
-        : widget.title;
+        : title;
       expandedTitle = config.expandedTextStyle != null
         ? DefaultTextStyle(
-            style: config.expandedTextStyle!,
-            child: widget.title!,
+            style: config.expandedTextStyle!.copyWith(color: foregroundColor ?? appBarTheme.foregroundColor),
+            child: title!,
           )
-        : widget.title;
+        : title;
     }
 
     late final bool centerTitle;
     {
       bool platformCenter() {
-        assert(theme.platform != null);
         switch (theme.platform) {
           case TargetPlatform.android:
           case TargetPlatform.fuchsia:
@@ -2231,9 +2284,7 @@ class _ScrollUnderFlexibleSpaceState extends State<_ScrollUnderFlexibleSpace> {
             return true;
         }
       }
-      centerTitle = widget.centerCollapsedTitle
-        ?? theme.appBarTheme.centerTitle
-        ?? platformCenter();
+      centerTitle = centerCollapsedTitle ?? appBarTheme.centerTitle ?? platformCenter();
     }
 
     final bool isCollapsed = settings.isScrolledUnder ?? false;
@@ -2252,7 +2303,7 @@ class _ScrollUnderFlexibleSpaceState extends State<_ScrollUnderFlexibleSpace> {
                 alignment: centerTitle
                   ? Alignment.center
                   : AlignmentDirectional.centerStart,
-                child: collapsedTitle
+                child: collapsedTitle,
               ),
             ),
           ),
@@ -2308,10 +2359,10 @@ class _AppBarDefaultsM2 extends AppBarTheme {
   IconThemeData? get iconTheme => _theme.iconTheme;
 
   @override
-  TextStyle? get toolbarTextStyle => _theme.textTheme.bodyText2;
+  TextStyle? get toolbarTextStyle => _theme.textTheme.bodyMedium;
 
   @override
-  TextStyle? get titleTextStyle => _theme.textTheme.headline6;
+  TextStyle? get titleTextStyle => _theme.textTheme.titleLarge;
 }
 
 // BEGIN GENERATED TOKEN PROPERTIES - AppBar
@@ -2321,7 +2372,7 @@ class _AppBarDefaultsM2 extends AppBarTheme {
 // Design token database by the script:
 //   dev/tools/gen_defaults/bin/gen_defaults.dart.
 
-// Token database version: v0_101
+// Token database version: v0_152
 
 class _AppBarDefaultsM3 extends AppBarTheme {
   _AppBarDefaultsM3(this.context)
@@ -2344,6 +2395,9 @@ class _AppBarDefaultsM3 extends AppBarTheme {
   Color? get foregroundColor => _colors.onSurface;
 
   @override
+  Color? get shadowColor => Colors.transparent;
+
+  @override
   Color? get surfaceTintColor => _colors.surfaceTint;
 
   @override
@@ -2359,7 +2413,7 @@ class _AppBarDefaultsM3 extends AppBarTheme {
   );
 
   @override
-  TextStyle? get toolbarTextStyle => _textTheme.bodyText2;
+  TextStyle? get toolbarTextStyle => _textTheme.bodyMedium;
 
   @override
   TextStyle? get titleTextStyle => _textTheme.titleLarge;

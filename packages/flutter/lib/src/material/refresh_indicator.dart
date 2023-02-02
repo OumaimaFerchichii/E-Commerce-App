@@ -98,7 +98,7 @@ enum RefreshIndicatorTriggerMode {
 /// ```dart
 /// ListView(
 ///   physics: const AlwaysScrollableScrollPhysics(),
-///   children: ...
+///   // ...
 /// )
 /// ```
 ///
@@ -138,11 +138,7 @@ class RefreshIndicator extends StatefulWidget {
     this.semanticsValue,
     this.strokeWidth = RefreshProgressIndicator.defaultStrokeWidth,
     this.triggerMode = RefreshIndicatorTriggerMode.onEdge,
-  }) : assert(child != null),
-       assert(onRefresh != null),
-       assert(notificationPredicate != null),
-       assert(strokeWidth != null),
-       assert(triggerMode != null);
+  });
 
   /// The widget below this widget in the tree.
   ///
@@ -206,9 +202,9 @@ class RefreshIndicator extends StatefulWidget {
   /// {@macro flutter.progress_indicator.ProgressIndicator.semanticsValue}
   final String? semanticsValue;
 
-  /// Defines `strokeWidth` for `RefreshIndicator`.
+  /// Defines [strokeWidth] for `RefreshIndicator`.
   ///
-  /// By default, the value of `strokeWidth` is 2.0 pixels.
+  /// By default, the value of [strokeWidth] is 2.0 pixels.
   final double strokeWidth;
 
   /// Defines how this [RefreshIndicator] can be triggered when users overscroll.
@@ -469,29 +465,12 @@ class RefreshIndicatorState extends State<RefreshIndicator> with TickerProviderS
       .animateTo(1.0 / _kDragSizeFactorLimit, duration: _kIndicatorSnapDuration)
       .then<void>((void value) {
         if (mounted && _mode == _RefreshIndicatorMode.snap) {
-          assert(widget.onRefresh != null);
           setState(() {
             // Show the indeterminate progress indicator.
             _mode = _RefreshIndicatorMode.refresh;
           });
 
           final Future<void> refreshResult = widget.onRefresh();
-          assert(() {
-            if (refreshResult == null) {
-              FlutterError.reportError(FlutterErrorDetails(
-                exception: FlutterError(
-                  'The onRefresh callback returned null.\n'
-                  'The RefreshIndicator onRefresh callback must return a Future.',
-                ),
-                context: ErrorDescription('when calling onRefresh'),
-                library: 'material library',
-              ));
-            }
-            return true;
-          }());
-          if (refreshResult == null) {
-            return;
-          }
           refreshResult.whenComplete(() {
             if (mounted && _mode == _RefreshIndicatorMode.refresh) {
               completer.complete();

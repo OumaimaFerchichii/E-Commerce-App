@@ -12,6 +12,9 @@ import 'material_state.dart';
 import 'theme.dart';
 import 'theme_data.dart';
 
+// Examples can assume:
+// late BuildContext context;
+
 /// Defines default property values for descendant [Checkbox] widgets.
 ///
 /// Descendant widgets obtain the current [CheckboxThemeData] object using
@@ -189,10 +192,10 @@ class CheckboxThemeData with Diagnosticable {
 
   // Special case because BorderSide.lerp() doesn't support null arguments
   static BorderSide? _lerpSides(BorderSide? a, BorderSide? b, double t) {
-    if (a == null && b == null) {
+    if (a == null || b == null) {
       return null;
     }
-    return BorderSide.lerp(a!, b!, t);
+    return BorderSide.lerp(a, b, t);
   }
 }
 

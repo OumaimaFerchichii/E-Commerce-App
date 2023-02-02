@@ -10,6 +10,9 @@ import 'package:flutter/widgets.dart';
 import 'material_state.dart';
 import 'theme.dart';
 
+// Examples can assume:
+// late BuildContext context;
+
 /// Defines default property values for descendant [DataTable]
 /// widgets.
 ///
@@ -119,7 +122,6 @@ class DataTableThemeData with Diagnosticable {
   ///
   /// {@macro dart.ui.shadow.lerp}
   static DataTableThemeData lerp(DataTableThemeData a, DataTableThemeData b, double t) {
-    assert(t != null);
     return DataTableThemeData(
       decoration: Decoration.lerp(a.decoration, b.decoration, t),
       dataRowColor: MaterialStateProperty.lerp<Color?>(a.dataRowColor, b.dataRowColor, t, Color.lerp),
@@ -211,7 +213,7 @@ class DataTableTheme extends InheritedWidget {
     super.key,
     required this.data,
     required super.child,
-  }) : assert(data != null);
+  });
 
   /// The properties used for all descendant [DataTable] widgets.
   final DataTableThemeData data;

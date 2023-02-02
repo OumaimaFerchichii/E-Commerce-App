@@ -9,6 +9,9 @@ import 'package:flutter/widgets.dart';
 
 import 'theme.dart';
 
+// Examples can assume:
+// late BuildContext context;
+
 @immutable
 /// Defines the visual properties of [ProgressIndicator] widgets.
 ///
@@ -84,7 +87,6 @@ class ProgressIndicatorThemeData with Diagnosticable {
     if (a == null && b == null) {
       return null;
     }
-    assert(t != null);
     return ProgressIndicatorThemeData(
       color: Color.lerp(a?.color, b?.color, t),
       linearTrackColor : Color.lerp(a?.linearTrackColor, b?.linearTrackColor, t),
@@ -157,7 +159,7 @@ class ProgressIndicatorTheme extends InheritedTheme {
     super.key,
     required this.data,
     required super.child,
-  }) : assert(data != null);
+  });
 
   /// The properties for descendant [ProgressIndicator] widgets.
   final ProgressIndicatorThemeData data;

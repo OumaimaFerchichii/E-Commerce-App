@@ -944,8 +944,6 @@ void main() {
 
       test('updates currentPhase if user responds yes', () async {
         stdio.stdin.add('y');
-        // for kSynchronizeDevWithBeta
-        stdio.stdin.add('y');
         final FakeProcessManager processManager = FakeProcessManager.list(<FakeCommand>[
           const FakeCommand(
             command: <String>['git', 'fetch', 'upstream'],
@@ -959,10 +957,6 @@ void main() {
           ),
           const FakeCommand(
             command: <String>['git', 'push', FrameworkRepository.defaultUpstream, '$revision1:$releaseChannel'],
-          ),
-          // for kSynchronizeDevWithBeta
-          const FakeCommand(
-            command: <String>['git', 'push', FrameworkRepository.defaultUpstream, '$revision1:dev'],
           ),
         ]);
         writeStateToFile(
@@ -996,7 +990,8 @@ void main() {
         );
         expect(
           stdio.stdout,
-          contains('Release archive packages must be verified on cloud storage: https://ci.chromium.org/p/flutter/g/beta_packaging/console'),
+          contains(
+              'Release archive packages must be verified on cloud storage: https://luci-milo.appspot.com/p/dart-internal/g/flutter_packaging/console'),
         );
         expect(finalState.currentPhase, ReleasePhase.VERIFY_RELEASE);
       });

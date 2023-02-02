@@ -7,6 +7,7 @@
 // https://github.com/flutter/flutter/issues/85160
 // Fails with "flutter test --test-randomize-ordering-seed=123"
 @Tags(<String>['no-shuffle'])
+library;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -410,7 +411,7 @@ void main() {
     );
   });
 
-  testWidgets("WidgetsApp don't rebuild routes when MediaQuery updates", (WidgetTester tester) async {
+  testWidgets("WidgetsApp doesn't rebuild routes when MediaQuery updates", (WidgetTester tester) async {
     // Regression test for https://github.com/flutter/flutter/issues/37878
     int routeBuildCount = 0;
     int dependentBuildCount = 0;
@@ -475,7 +476,7 @@ void main() {
     double? textScaleFactor;
     await tester.pumpWidget(MaterialApp(
       home: Builder(builder:(BuildContext context) {
-        textScaleFactor = MediaQuery.of(context).textScaleFactor;
+        textScaleFactor = MediaQuery.textScaleFactorOf(context);
         return Container();
       }),
     ));
@@ -851,6 +852,88 @@ void main() {
     expect(appliedTheme.primaryColor, Colors.lightGreen);
     tester.binding.platformDispatcher.clearAccessibilityFeaturesTestValue();
     tester.binding.platformDispatcher.clearPlatformBrightnessTestValue();
+  });
+
+  testWidgets('MaterialApp animates theme changes', (WidgetTester tester) async {
+    final ThemeData lightTheme = ThemeData.light();
+    final ThemeData darkTheme = ThemeData.dark();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: ThemeMode.light,
+        home: Builder(
+          builder: (BuildContext context) {
+            return const Scaffold();
+          },
+        ),
+      ),
+    );
+    expect(tester.widget<Material>(find.byType(Material)).color, lightTheme.scaffoldBackgroundColor);
+
+    // Change to dark theme
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: ThemeMode.dark,
+        home: Builder(
+          builder: (BuildContext context) {
+            return const Scaffold();
+          },
+        ),
+      ),
+    );
+
+    // Wait half kThemeAnimationDuration = 200ms.
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Default curve is linear so background should be half way between
+    // the two colors.
+    final Color halfBGColor = Color.lerp(lightTheme.scaffoldBackgroundColor, darkTheme.scaffoldBackgroundColor, 0.5)!;
+    expect(tester.widget<Material>(find.byType(Material)).color, halfBGColor);
+  });
+
+  testWidgets('MaterialApp theme animation can be turned off', (WidgetTester tester) async {
+    final ThemeData lightTheme = ThemeData.light();
+    final ThemeData darkTheme = ThemeData.dark();
+    int scaffoldRebuilds = 0;
+
+    final Widget scaffold = Builder(
+      builder: (BuildContext context) {
+        scaffoldRebuilds++;
+        // Use Theme.of() to ensure we are building when the theme changes.
+        return Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor);
+      },
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: ThemeMode.light,
+        themeAnimationDuration: Duration.zero,
+        home: scaffold,
+      ),
+    );
+    expect(tester.widget<Material>(find.byType(Material)).color, lightTheme.scaffoldBackgroundColor);
+    expect(scaffoldRebuilds, 1);
+
+    // Change to dark theme
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: ThemeMode.dark,
+        themeAnimationDuration: Duration.zero,
+        home: scaffold,
+      ),
+    );
+
+    // Wait for any animation to finish.
+    await tester.pumpAndSettle();
+    expect(tester.widget<Material>(find.byType(Material)).color, darkTheme.scaffoldBackgroundColor);
+    expect(scaffoldRebuilds, 2);
   });
 
   testWidgets('MaterialApp switches themes when the Window platformBrightness changes.', (WidgetTester tester) async {

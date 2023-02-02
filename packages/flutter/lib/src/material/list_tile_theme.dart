@@ -13,6 +13,9 @@ import 'material_state.dart';
 import 'theme.dart';
 import 'theme_data.dart';
 
+// Examples can assume:
+// late BuildContext context;
+
 /// Used with [ListTileTheme] to define default property values for
 /// descendant [ListTile] widgets, as well as classes that build
 /// [ListTile]s, like [CheckboxListTile], [RadioListTile], and
@@ -48,6 +51,9 @@ class ListTileThemeData with Diagnosticable {
     this.selectedColor,
     this.iconColor,
     this.textColor,
+    this.titleTextStyle,
+    this.subtitleTextStyle,
+    this.leadingAndTrailingTextStyle,
     this.contentPadding,
     this.tileColor,
     this.selectedTileColor,
@@ -76,6 +82,15 @@ class ListTileThemeData with Diagnosticable {
 
   /// Overrides the default value of [ListTile.textColor].
   final Color? textColor;
+
+  /// Overrides the default value of [ListTile.titleTextStyle].
+  final TextStyle? titleTextStyle;
+
+  /// Overrides the default value of [ListTile.subtitleTextStyle].
+  final TextStyle? subtitleTextStyle;
+
+  /// Overrides the default value of [ListTile.leadingAndTrailingTextStyle].
+  final TextStyle? leadingAndTrailingTextStyle;
 
   /// Overrides the default value of [ListTile.contentPadding].
   final EdgeInsetsGeometry? contentPadding;
@@ -113,6 +128,9 @@ class ListTileThemeData with Diagnosticable {
     Color? selectedColor,
     Color? iconColor,
     Color? textColor,
+    TextStyle? titleTextStyle,
+    TextStyle? subtitleTextStyle,
+    TextStyle? leadingAndTrailingTextStyle,
     EdgeInsetsGeometry? contentPadding,
     Color? tileColor,
     Color? selectedTileColor,
@@ -131,6 +149,9 @@ class ListTileThemeData with Diagnosticable {
       selectedColor: selectedColor ?? this.selectedColor,
       iconColor: iconColor ?? this.iconColor,
       textColor: textColor ?? this.textColor,
+      titleTextStyle: titleTextStyle ?? this.titleTextStyle,
+      subtitleTextStyle: subtitleTextStyle ?? this.subtitleTextStyle,
+      leadingAndTrailingTextStyle: leadingAndTrailingTextStyle ?? this.leadingAndTrailingTextStyle,
       contentPadding: contentPadding ?? this.contentPadding,
       tileColor: tileColor ?? this.tileColor,
       selectedTileColor: selectedTileColor ?? this.selectedTileColor,
@@ -145,7 +166,6 @@ class ListTileThemeData with Diagnosticable {
 
   /// Linearly interpolate between ListTileThemeData objects.
   static ListTileThemeData? lerp(ListTileThemeData? a, ListTileThemeData? b, double t) {
-    assert (t != null);
     if (a == null && b == null) {
       return null;
     }
@@ -156,6 +176,9 @@ class ListTileThemeData with Diagnosticable {
       selectedColor: Color.lerp(a?.selectedColor, b?.selectedColor, t),
       iconColor: Color.lerp(a?.iconColor, b?.iconColor, t),
       textColor: Color.lerp(a?.textColor, b?.textColor, t),
+      titleTextStyle: TextStyle.lerp(a?.titleTextStyle, b?.titleTextStyle, t),
+      subtitleTextStyle: TextStyle.lerp(a?.subtitleTextStyle, b?.subtitleTextStyle, t),
+      leadingAndTrailingTextStyle: TextStyle.lerp(a?.leadingAndTrailingTextStyle, b?.leadingAndTrailingTextStyle, t),
       contentPadding: EdgeInsetsGeometry.lerp(a?.contentPadding, b?.contentPadding, t),
       tileColor: Color.lerp(a?.tileColor, b?.tileColor, t),
       selectedTileColor: Color.lerp(a?.selectedTileColor, b?.selectedTileColor, t),
@@ -176,6 +199,9 @@ class ListTileThemeData with Diagnosticable {
     selectedColor,
     iconColor,
     textColor,
+    titleTextStyle,
+    subtitleTextStyle,
+    leadingAndTrailingTextStyle,
     contentPadding,
     tileColor,
     selectedTileColor,
@@ -201,6 +227,9 @@ class ListTileThemeData with Diagnosticable {
       && other.style == style
       && other.selectedColor == selectedColor
       && other.iconColor == iconColor
+      && other.titleTextStyle == titleTextStyle
+      && other.subtitleTextStyle == subtitleTextStyle
+      && other.leadingAndTrailingTextStyle == leadingAndTrailingTextStyle
       && other.textColor == textColor
       && other.contentPadding == contentPadding
       && other.tileColor == tileColor
@@ -222,6 +251,9 @@ class ListTileThemeData with Diagnosticable {
     properties.add(ColorProperty('selectedColor', selectedColor, defaultValue: null));
     properties.add(ColorProperty('iconColor', iconColor, defaultValue: null));
     properties.add(ColorProperty('textColor', textColor, defaultValue: null));
+    properties.add(DiagnosticsProperty<TextStyle>('titleTextStyle', titleTextStyle, defaultValue: null));
+    properties.add(DiagnosticsProperty<TextStyle>('subtitleTextStyle', subtitleTextStyle, defaultValue: null));
+    properties.add(DiagnosticsProperty<TextStyle>('leadingAndTrailingTextStyle', leadingAndTrailingTextStyle, defaultValue: null));
     properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('contentPadding', contentPadding, defaultValue: null));
     properties.add(ColorProperty('tileColor', tileColor, defaultValue: null));
     properties.add(ColorProperty('selectedTileColor', selectedTileColor, defaultValue: null));
@@ -447,7 +479,6 @@ class ListTileTheme extends InheritedTheme {
     double? minLeadingWidth,
     required Widget child,
   }) {
-    assert(child != null);
     return Builder(
       builder: (BuildContext context) {
         final ListTileThemeData parent = ListTileTheme.of(context);

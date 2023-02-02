@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:ui' as ui show Paragraph, Image;
+import 'dart:ui' as ui show Image, Paragraph;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
@@ -498,7 +498,7 @@ class _PathMatcher extends Matcher {
 }
 
 class _MismatchedCall {
-  const _MismatchedCall(this.message, this.callIntroduction, this.call) : assert(call != null);
+  const _MismatchedCall(this.message, this.callIntroduction, this.call);
   final String message;
   final String callIntroduction;
   final RecordedInvocation call;

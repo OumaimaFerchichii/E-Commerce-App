@@ -12,9 +12,12 @@ import 'package:platform/platform.dart' as platform;
 
 import 'package:process/process.dart';
 
+<<<<<<< HEAD
 const String kDocsRoot = 'dev/docs';
 const String kPublishRoot = '$kDocsRoot/doc';
 
+=======
+>>>>>>> f9daa9aac4b8c801359b3c7a194d490bebcc2016
 class CommandException implements Exception {}
 
 Future<void> main() async {

@@ -47,14 +47,14 @@ export 'package:flutter/rendering.dart' show SemanticsHandle;
 // that doesn't apply here.
 // ignore: deprecated_member_use
 export 'package:test_api/test_api.dart' hide
-  test,
-  group,
-  setUpAll,
-  tearDownAll,
-  setUp,
-  tearDown,
   expect,
-  isInstanceOf;
+  group,
+  isInstanceOf,
+  setUp,
+  setUpAll,
+  tearDown,
+  tearDownAll,
+  test;
 
 /// Signature for callback to [testWidgets] and [benchmarkWidgets].
 typedef WidgetTesterCallback = Future<void> Function(WidgetTester widgetTester);
@@ -138,7 +138,6 @@ void testWidgets(
   TestVariant<Object?> variant = const DefaultTestVariant(),
   dynamic tags,
 }) {
-  assert(variant != null);
   assert(variant.values.isNotEmpty, 'There must be at least one value to test in the testing variant.');
   final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
   final WidgetTester tester = WidgetTester._(binding);
@@ -502,6 +501,10 @@ Future<void> expectLater(
 ///
 /// For convenience, instances of this class (such as the one provided by
 /// `testWidgets`) can be used as the `vsync` for `AnimationController` objects.
+///
+/// When the binding is [LiveTestWidgetsFlutterBinding], events from
+/// [LiveTestWidgetsFlutterBinding.deviceEventDispatcher] will be handled in
+/// [dispatchEvent].
 class WidgetTester extends WidgetController implements HitTestDispatcher, TickerProvider {
   WidgetTester._(super.binding) {
     if (binding is LiveTestWidgetsFlutterBinding) {
@@ -549,15 +552,26 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
     EnginePhase phase = EnginePhase.sendSemanticsUpdate,
   ]) {
     return TestAsyncUtils.guard<void>(() {
-      binding.attachRootWidget(widget);
-      binding.scheduleFrame();
-      return binding.pump(duration, phase);
+      return _pumpWidget(
+        binding.wrapWithDefaultView(widget),
+        duration,
+        phase,
+      );
     });
+  }
+
+  Future<void> _pumpWidget(
+    Widget widget, [
+    Duration? duration,
+    EnginePhase phase = EnginePhase.sendSemanticsUpdate,
+  ]) {
+    binding.attachRootWidget(widget);
+    binding.scheduleFrame();
+    return binding.pump(duration, phase);
   }
 
   @override
   Future<List<Duration>> handlePointerEventRecord(Iterable<PointerEventRecord> records) {
-    assert(records != null);
     assert(records.isNotEmpty);
     return TestAsyncUtils.guard<List<Duration>>(() async {
       final List<Duration> handleTimeStampDiff = <Duration>[];
@@ -648,9 +662,7 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
     EnginePhase phase = EnginePhase.sendSemanticsUpdate,
     Duration timeout = const Duration(minutes: 10),
   ]) {
-    assert(duration != null);
     assert(duration > Duration.zero);
-    assert(timeout != null);
     assert(timeout > Duration.zero);
     assert(() {
       final WidgetsBinding binding = this.binding;
@@ -689,11 +701,10 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
     Duration maxDuration, [
     Duration interval = const Duration(milliseconds: 16, microseconds: 683),
   ]) {
-    assert(maxDuration != null);
     // The interval following the last frame doesn't have to be within the fullDuration.
     Duration elapsed = Duration.zero;
     return TestAsyncUtils.guard<void>(() async {
-      binding.attachRootWidget(target);
+      binding.attachRootWidget(binding.wrapWithDefaultView(target));
       binding.scheduleFrame();
       while (elapsed < maxDuration) {
         await binding.pump(interval);
@@ -716,12 +727,14 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
       'therefore no restoration data has been collected to restore from. Did you forget to wrap '
       'your widget tree in a RootRestorationScope?',
     );
-    final Widget widget = ((binding.renderViewElement! as RenderObjectToWidgetElement<RenderObject>).widget as RenderObjectToWidgetAdapter<RenderObject>).child!;
-    final TestRestorationData restorationData = binding.restorationManager.restorationData;
-    runApp(Container(key: UniqueKey()));
-    await pump();
-    binding.restorationManager.restoreFrom(restorationData);
-    return pumpWidget(widget);
+    return TestAsyncUtils.guard<void>(() async {
+      final Widget widget = ((binding.renderViewElement! as RenderObjectToWidgetElement<RenderObject>).widget as RenderObjectToWidgetAdapter<RenderObject>).child!;
+      final TestRestorationData restorationData = binding.restorationManager.restorationData;
+      runApp(Container(key: UniqueKey()));
+      await pump();
+      binding.restorationManager.restoreFrom(restorationData);
+      return _pumpWidget(widget);
+    });
   }
 
   /// Retrieves the current restoration data from the [RestorationManager].
@@ -804,7 +817,6 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
 
   @override
   HitTestResult hitTestOnBinding(Offset location) {
-    assert(location != null);
     location = binding.localToGlobal(location);
     return super.hitTestOnBinding(location);
   }
@@ -817,6 +829,10 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
   }
 
   /// Handler for device events caught by the binding in live test mode.
+  ///
+  /// [PointerDownEvent]s received here will only print a diagnostic message
+  /// showing possible [Finder]s that can be used to interact with the widget at
+  /// the location of [result].
   @override
   void dispatchEvent(PointerEvent event, HitTestResult result) {
     if (event is PointerDownEvent) {
@@ -938,6 +954,13 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
     return binding.takeException();
   }
 
+  /// {@macro flutter.flutter_test.TakeAccessibilityAnnouncements}
+  ///
+  /// See [TestWidgetsFlutterBinding.takeAnnouncements] for details.
+  List<CapturedAccessibilityAnnouncement> takeAnnouncements() {
+    return binding.takeAnnouncements();
+  }
+
   /// Acts as if the application went idle.
   ///
   /// Runs all remaining microtasks, including those scheduled as a result of
@@ -974,7 +997,6 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
   /// error message. It should be an adverbial phrase describing the current
   /// situation, such as "at the end of the test".
   void verifyTickersWereDisposed([ String when = 'when none should have been' ]) {
-    assert(when != null);
     if (_tickers != null) {
       for (final Ticker ticker in _tickers!) {
         if (ticker.isActive) {
@@ -1078,7 +1100,7 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
   ///
   /// To enter text into other widgets (e.g. a custom widget that maintains a
   /// TextInputConnection the way that a [EditableText] does), first ensure that
-  /// that widget has an open connection (e.g. by using [tap] to to focus it),
+  /// that widget has an open connection (e.g. by using [tap] to focus it),
   /// then call `testTextInput.enterText` directly (see
   /// [TestTextInput.enterText]).
   Future<void> enterText(Finder finder, String text) async {
